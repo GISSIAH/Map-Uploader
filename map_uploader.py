@@ -24,6 +24,7 @@
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
+import ctypes  # An included library with Python install.
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -82,18 +83,17 @@ class MapUpload:
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('MapUpload', message)
 
-
     def add_action(
-        self,
-        icon_path,
-        text,
-        callback,
-        enabled_flag=True,
-        add_to_menu=True,
-        add_to_toolbar=True,
-        status_tip=None,
-        whats_this=None,
-        parent=None):
+            self,
+            icon_path,
+            text,
+            callback,
+            enabled_flag=True,
+            add_to_menu=True,
+            add_to_toolbar=True,
+            status_tip=None,
+            whats_this=None,
+            parent=None):
         """Add a toolbar icon to the toolbar.
 
         :param icon_path: Path to the icon for this action. Can be a resource
@@ -170,7 +170,6 @@ class MapUpload:
         # will be set False in run()
         self.first_start = True
 
-
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
@@ -179,6 +178,13 @@ class MapUpload:
                 action)
             self.iface.removeToolBarIcon(action)
 
+    def getLayerList(self):
+        self.dlg.layerList.clear()
+        layers = self.iface.mapCanvas().layers()
+        layerNames = []
+        for layer in layers:
+            layerNames.append(layer.name())
+        self.dlg.layerList.addItems(layerNames)
 
     def run(self):
         """Run method that performs all the real work"""
@@ -188,13 +194,8 @@ class MapUpload:
         if self.first_start == True:
             self.first_start = False
             self.dlg = MapUploadDialog()
-
         # show the dialog
         self.dlg.show()
+        self.getLayerList()
         # Run the dialog event loop
-        result = self.dlg.exec_()
-        # See if OK was pressed
-        if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
-            pass
+        #result = self.dlg.exec_()
