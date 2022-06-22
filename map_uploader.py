@@ -202,10 +202,12 @@ class MapUpload:
         for ft in layer.getFeatures():
             attrs = QgsJsonUtils.exportAttributes(ft)
             attrDict = ast.literal_eval(attrs)
+            geomDict = ast.literal_eval(ft.geometry().asJson())
             ftObject = {
                 "properties": [
                     attrDict
-                ]
+                ],
+                "geometry": geomDict
             }
             layerObject['features'].append(ftObject)
         return layerObject
