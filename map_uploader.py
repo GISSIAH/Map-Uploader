@@ -25,16 +25,23 @@ from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 import ctypes  # An included library with Python install.
-
+from qgis.core import *
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
 from .map_uploader_dialog import MapUploadDialog
 import os.path
+import requests
+import json
+import ast
 
 
 class MapUpload:
     """QGIS Plugin Implementation."""
+
+    mapDictionary = {
+
+    }
 
     def __init__(self, iface):
         """Constructor.
@@ -179,12 +186,53 @@ class MapUpload:
             self.iface.removeToolBarIcon(action)
 
     def getLayerList(self):
-        self.dlg.layerList.clear()
+
         layers = self.iface.mapCanvas().layers()
         layerNames = []
         for layer in layers:
             layerNames.append(layer.name())
-        self.dlg.layerList.addItems(layerNames)
+        return layerNames
+
+    def createLayerObject(self, layer):
+        layerObject = {
+            "name": layer.name(),
+            "features": []
+        }
+
+        for ft in layer.getFeatures():
+            attrs = QgsJsonUtils.exportAttributes(ft)
+            attrDict = ast.literal_eval(attrs)
+            ftObject = {
+                "properties": [
+                    attrDict
+                ]
+            }
+            layerObject['features'].append(ftObject)
+        return layerObject
+
+    def createMapJson(self, layers):
+        layerList = []
+
+        for layer in layers:
+            layerObject = self.createLayerObject(layer)
+            layerList.append(layerObject)
+
+        mapDictionary = {
+            "name": "",
+            "layers": layerList
+        }
+
+        self.mapDictionary = mapDictionary
+
+    def uploadMap(self):
+        layers = self.iface.mapCanvas().layers()
+
+        self.createMapJson(layers)
+        self.mapDictionary['name'] = self.dlg.mapName.toPlainText()
+        requests.post("http://localhost:3000/map", json=self.mapDictionary)
+
+    def PrintJson(self):
+        print("json")
 
     def run(self):
         """Run method that performs all the real work"""
@@ -195,7 +243,12 @@ class MapUpload:
             self.first_start = False
             self.dlg = MapUploadDialog()
         # show the dialog
+        self.dlg.layerList.clear()
         self.dlg.show()
-        self.getLayerList()
+
+        layerNames = self.getLayerList()
+        self.dlg.layerList.addItems(layerNames)
+
+        self.dlg.uploadBtn.clicked.connect(self.uploadMap)
         # Run the dialog event loop
         #result = self.dlg.exec_()
