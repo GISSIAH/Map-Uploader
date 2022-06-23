@@ -204,6 +204,7 @@ class MapUpload:
             attrDict = ast.literal_eval(attrs)
             geomDict = ast.literal_eval(ft.geometry().asJson())
             ftObject = {
+                "type": "Feature",
                 "properties": [
                     attrDict
                 ],
