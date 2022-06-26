@@ -209,9 +209,7 @@ class MapUpload:
             geomDict = ast.literal_eval(ft.geometry().asJson())
             ftObject = {
                 "type": "Feature",
-                "properties": [
-                    attrDict
-                ],
+                "properties":attrDict,
                 "geometry": geomDict
             }
             layerObject['features'].append(ftObject)
