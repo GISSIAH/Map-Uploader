@@ -43,6 +43,10 @@ class MapUpload:
 
     }
 
+    mapLayerColors = {
+
+    }
+
     def __init__(self, iface):
         """Constructor.
 
@@ -218,6 +222,9 @@ class MapUpload:
 
         for layer in layers:
             layerObject = self.createLayerObject(layer)
+            layerObject['style'] = {
+                "color" : self.mapLayerColors[layer.name()].name()
+            }
             layerList.append(layerObject)
 
         mapDictionary = {
@@ -237,6 +244,18 @@ class MapUpload:
     def PrintJson(self):
         print("json")
 
+    def listItemClicked(self, listItem):
+        currentLayer = listItem.text()
+        if currentLayer in self.mapLayerColors.keys():
+            print("color exists")
+            self.dlg.colorSelector.setColor(self.mapLayerColors[currentLayer])
+        else:
+            print("color not set")
+
+    def colorChanged(self, color):
+        currentLayer = self.dlg.layerList.currentItem().text()
+        self.mapLayerColors[currentLayer] = color
+
     def run(self):
         """Run method that performs all the real work"""
 
@@ -252,6 +271,8 @@ class MapUpload:
         layerNames = self.getLayerList()
         self.dlg.layerList.addItems(layerNames)
 
+        self.dlg.layerList.currentItemChanged.connect(self.listItemClicked)
         self.dlg.uploadBtn.clicked.connect(self.uploadMap)
+        self.dlg.colorSelector.colorChanged.connect(self.colorChanged)
         # Run the dialog event loop
         #result = self.dlg.exec_()
