@@ -206,10 +206,11 @@ class MapUpload:
         for ft in layer.getFeatures():
             attrs = QgsJsonUtils.exportAttributes(ft)
             attrDict = ast.literal_eval(attrs)
-            geomDict = ast.literal_eval(ft.geometry().simplify(0.0001).asJson())
+            geomDict = ast.literal_eval(
+                ft.geometry().simplify(0.0001).asJson())
             ftObject = {
                 "type": "Feature",
-                "properties":attrDict,
+                "properties": attrDict,
                 "geometry": geomDict
             }
             layerObject['features'].append(ftObject)
@@ -221,7 +222,7 @@ class MapUpload:
         for layer in layers:
             layerObject = self.createLayerObject(layer)
             layerObject['style'] = {
-                "color" : self.mapLayerColors[layer.name()].name()
+                "color": self.mapLayerColors[layer.name()].name()
             }
             layerList.append(layerObject)
 
@@ -234,10 +235,16 @@ class MapUpload:
 
     def uploadMap(self):
         layers = self.iface.mapCanvas().layers()
-
         self.createMapJson(layers)
         self.mapDictionary['name'] = self.dlg.mapName.toPlainText()
-        requests.post("http://localhost:3000/map", json=self.mapDictionary)
+        res = requests.post(
+            "https://attic-geo-api.herokuapp.com/map", json=self.mapDictionary)
+
+        url = "https://attic-geo-tools.vercel.app/tools/map/" + \
+            res.json()['_id']
+        widgetStr = '<a href='+url+'>Click Here To View Your Map</a>'
+        self.iface.messageBar().pushMessage(
+            "Map Uploaded", widgetStr, level=Qgis.Info, duration=30)
 
     def PrintJson(self):
         print("json")
