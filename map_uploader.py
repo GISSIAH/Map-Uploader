@@ -225,10 +225,12 @@ class MapUpload:
                 "color": self.mapLayerColors[layer.name()].name()
             }
             layerList.append(layerObject)
-
+        center_x = self.iface.mapCanvas().extent().center().x()
+        center_y = self.iface.mapCanvas().extent().center().y()
         mapDictionary = {
             "name": "",
-            "layers": layerList
+            "layers": layerList,
+            "center": [center_y, center_x]
         }
 
         self.mapDictionary = mapDictionary
